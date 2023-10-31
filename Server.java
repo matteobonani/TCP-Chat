@@ -5,8 +5,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class Server implements Runnable {
 
@@ -14,6 +13,7 @@ public class Server implements Runnable {
     private ServerSocket server;
     private boolean done;
     private ExecutorService pool;
+
 
     public Server(){
         connections = new ArrayList<>();
@@ -32,12 +32,17 @@ public class Server implements Runnable {
                 pool.execute(handler);
             }
         } catch (Exception e) {
-            shutDown();
+//            shutDown();  // no need to shutdown, if it doesn't even start
+            System.out.println(e);
         }
     }
 
 
+
+
     public void brodcast(String message){
+
+        // encrypt message
         for(ConnectionHandler ch : connections){
             if (ch != null){
                 ch.SendMassage(message);
@@ -45,6 +50,7 @@ public class Server implements Runnable {
         }
     }
 
+    // is really needed???
     public void shutDown(){
         try{
             done = true;
@@ -59,7 +65,6 @@ public class Server implements Runnable {
             // ignore
         }
     }
-
     class ConnectionHandler implements Runnable{
 
         private Socket client;
@@ -67,20 +72,20 @@ public class Server implements Runnable {
         private PrintWriter out;
         private String nickame;
 
-        public ConnectionHandler(Socket client){
-            this.client = client;
-        }
+        public ConnectionHandler(Socket client){this.client = client;}
 
         @Override
         public void run() {
 
             try {
+
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
                 out.println("Enter Nickname: ");
-                nickame = in.readLine();
+                nickame =  in.readLine();
                 System.out.println(nickame + " is connected with the address: " + client.getRemoteSocketAddress().toString());
                 brodcast(nickame + " joined the chat!");
+
                 String message;
                 while((message = in.readLine()) != null){
                     if (message.startsWith("/nick")){
@@ -95,15 +100,15 @@ public class Server implements Runnable {
                             out.println("No nickname provided");
                         }
                     } else if(message.startsWith("/quit")){
-                        System.out.println(nickame + "has disconnected");
+                        System.out.println(nickame + " has disconnected");
                         brodcast(nickame + " left the chat!");
                         shutDown();
-                    } else {
+                    }else {
                         brodcast(nickame + ": " + message);
                     }
                 }
-
             } catch (IOException e) {
+                System.out.println(nickame + "disconnected");
                 shutDown();
             }
         }

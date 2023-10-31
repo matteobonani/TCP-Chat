@@ -10,15 +10,21 @@ public class Client implements Runnable{
     private boolean done;
     private String ip;
     private Scanner scan = new Scanner(System.in);
+    private String encryptionKey;
+    private boolean firstMessage = true; // just to give the nickname to the server not crypted
 
     @Override
     public void run() {
         try{
-            System.out.println("PLease provide the IP of the computer hosting the server. If you are the host type localhost: ");
+            System.out.println("Please provide the IP of the computer hosting the server. If you are the host type localhost: ");
             ip = scan.next();
             if (ip.equals("localhost")){
                 ip = "127.0.0.1";
             }
+
+            System.out.println("Enter your encryption key: ");
+            encryptionKey = scan.next();
+
             client = new Socket(ip, 9999);
             out = new PrintWriter(client.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -27,8 +33,12 @@ public class Client implements Runnable{
             Thread t = new Thread(inHandler);
             t.start();
 
+
+
             String inMessage;
             while ((inMessage = in.readLine()) != null){
+                if (!inMessage.startsWith("/")) inMessage = decryptMessage(inMessage);
+
                 System.out.println(inMessage);
             }
         } catch (IOException e){
@@ -36,6 +46,21 @@ public class Client implements Runnable{
         }
     }
 
+    public String decryptMessage(String message) {
+
+        int indexOfColon = message.indexOf(":");
+
+        if (indexOfColon != -1){
+
+            String str1 = message.substring(0,indexOfColon + 1);
+            String str2 = message.substring(indexOfColon + 2);
+
+            if(!str2.startsWith("/")) str2 = StringEncryptor.decrypt(str2, encryptionKey);
+            else str2 = str2.substring(1);
+
+            return str1 + " " + str2;
+        }else return message;
+    }
     public void shutDown(){
         done = true;
         try{
@@ -53,17 +78,32 @@ public class Client implements Runnable{
 
         @Override
         public void run() {
-            try{
+            try {
                 BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in));
-                while (!done){
+                while (!done) {
                     String message = inReader.readLine();
-                    if (message.equals("/quit")){
-                        out.println(message);
-                        inReader.close();
-                        shutDown();
-                    } else {
-                        out.println(message);
-                    }
+
+                        if (firstMessage) {
+                            out.println(message);
+                            firstMessage = false;
+                        } else {
+
+                            if (!message.startsWith("/")) message = StringEncryptor.encrypt(message, encryptionKey);
+
+                            if (message.startsWith("/key")) {
+                                String[] messageSplit = message.split(" ", 2);
+                                encryptionKey = messageSplit[1];
+                                System.out.println("key changed");
+
+                            } else if (message.startsWith("/quit")) {
+                                out.println(message);
+                                inReader.close();
+                                shutDown();
+
+                            } else out.println(message);
+                        }
+
+
                 }
             } catch (IOException e){
                 shutDown();
@@ -75,4 +115,9 @@ public class Client implements Runnable{
         Client client = new Client();
         client.run();
     }
+
+
+
+
 }
+
