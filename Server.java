@@ -26,10 +26,7 @@ public class Server implements Runnable {
             server = new ServerSocket(9999);
             pool = Executors.newCachedThreadPool();
 
-            // Schedule a task to print the list of connected clients every 5 seconds
-            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-            scheduler.scheduleAtFixedRate(this::printConnectedClients, 0, 5, TimeUnit.SECONDS);
-
+            checkConnectionStatus();
 
             while(!done){
                 Socket client = server.accept();
@@ -43,6 +40,23 @@ public class Server implements Runnable {
         }
     }
 
+    public void checkConnectionStatus() {
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(() -> {
+            if(!connections.isEmpty()){
+                for (ConnectionHandler ch : connections) {
+                    if(!ch.firstMessage){
+                        if (ch.crashed) {
+                            System.out.println(ch.nickame + " crashed");
+                            ch.shutDown();
+                        }else ch.crashed = true;
+                    }
+
+                }
+            }
+        }, 0, 5, TimeUnit.SECONDS);
+    }
+
     public void printConnectedClients() {
         if(!connections.isEmpty()){
             System.out.println("Connected clients:");
@@ -52,9 +66,6 @@ public class Server implements Runnable {
         }
 
     }
-
-
-
 
     public void brodcast(String message){
 
@@ -88,6 +99,10 @@ public class Server implements Runnable {
         private PrintWriter out;
         private String nickame;
 
+        private boolean crashed = false;
+
+        private boolean  firstMessage = true;
+
         public ConnectionHandler(Socket client){this.client = client;}
 
         @Override
@@ -99,29 +114,41 @@ public class Server implements Runnable {
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
                 out.println("Enter Nickname: ");
                 nickame =  in.readLine();
+
+                firstMessage = false;
+
                 System.out.println(nickame + " is connected with the address: " + client.getRemoteSocketAddress().toString());
                 brodcast(nickame + " joined the chat!");
 
                 String message;
                 while((message = in.readLine()) != null){
-                    if (message.startsWith("/nick")){
-                        // Nickname change
-                        String[] messageSplit = message.split(" ", 2);
-                        if (messageSplit.length == 2){
-                            brodcast(nickame + " renamed themselves to " + messageSplit[1]);
-                            System.out.println(nickame + " renamed themselves to " + messageSplit[1]);
-                            nickame = messageSplit[1];
-                            out.println("Successfully changed nickname to " + nickame);
-                        } else {
-                            out.println("No nickname provided");
-                        }
-                    } else if(message.startsWith("/quit")){
-                        System.out.println(nickame + " has disconnected");
-                        brodcast(nickame + " left the chat!");
-                        shutDown();
+
+                    if(message.startsWith("PING")){
+                        crashed = false;
                     }else {
-                        brodcast(nickame + ": " + message);
+
+                        if (message.startsWith("/nick")){
+                            // Nickname change
+                            String[] messageSplit = message.split(" ", 2);
+                            if (messageSplit.length == 2){
+                                brodcast(nickame + " renamed themselves to " + messageSplit[1]);
+                                System.out.println(nickame + " renamed themselves to " + messageSplit[1]);
+                                nickame = messageSplit[1];
+                                out.println("Successfully changed nickname to " + nickame);
+                            } else {
+                                out.println("No nickname provided");
+                            }
+                        } else if(message.startsWith("/quit")){
+                            System.out.println(nickame + " has disconnected");
+                            brodcast(nickame + " left the chat!");
+                            shutDown();
+                        }else {
+                            brodcast(nickame + ": " + message);
+                        }
                     }
+
+
+
                 }
             } catch (IOException e) {
                 System.out.println(nickame + " disconnected");

@@ -1,6 +1,9 @@
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Client implements Runnable{
 
@@ -33,6 +36,9 @@ public class Client implements Runnable{
             Thread t = new Thread(inHandler);
             t.start();
 
+            // Schedule a task to send "PING" every 5 seconds
+            ScheduledExecutorService pingScheduler = Executors.newScheduledThreadPool(1);
+            pingScheduler.scheduleAtFixedRate(this::sendPing, 0, 5, TimeUnit.SECONDS);
 
 
             String inMessage;
@@ -43,6 +49,11 @@ public class Client implements Runnable{
             }
         } catch (IOException e){
             shutDown();
+        }
+    }
+    public void sendPing() {
+        if (!done) {
+            if(!firstMessage) out.println("PING");
         }
     }
 
