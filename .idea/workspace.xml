@@ -2,19 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ed96dd04-851d-4d0e-8802-f5b07f02b1aa" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/Client$InputHandler.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/Client.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/Server$ConnectionHandler.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/Server.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/StringEncryptor.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TCP-Chat/TCP-Chat.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
