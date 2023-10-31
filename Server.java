@@ -25,6 +25,12 @@ public class Server implements Runnable {
         try {
             server = new ServerSocket(9999);
             pool = Executors.newCachedThreadPool();
+
+            // Schedule a task to print the list of connected clients every 5 seconds
+            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+            scheduler.scheduleAtFixedRate(this::printConnectedClients, 0, 5, TimeUnit.SECONDS);
+
+
             while(!done){
                 Socket client = server.accept();
                 ConnectionHandler handler = new ConnectionHandler(client);
@@ -35,6 +41,16 @@ public class Server implements Runnable {
 //            shutDown();  // no need to shutdown, if it doesn't even start
             System.out.println(e);
         }
+    }
+
+    public void printConnectedClients() {
+        if(!connections.isEmpty()){
+            System.out.println("Connected clients:");
+            for (ConnectionHandler ch : connections) {
+                System.out.println(ch.nickame);
+            }
+        }
+
     }
 
 
@@ -108,7 +124,8 @@ public class Server implements Runnable {
                     }
                 }
             } catch (IOException e) {
-                System.out.println(nickame + "disconnected");
+                System.out.println(nickame + " disconnected");
+                System.out.println(e);
                 shutDown();
             }
         }
@@ -124,6 +141,7 @@ public class Server implements Runnable {
                 if (!client.isClosed()){
                     client.close();
                 }
+                connections.remove(this);
             } catch(IOException e){
                 // ignore
             }
